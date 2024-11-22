@@ -1,0 +1,106 @@
+-- add "local AimbotEnabled = true     --Costumize if u want
+local ESPEnabled = true
+local TeamCheck = true
+local WallCheck = true
+local AimbotRange = 2000  -- Maximum range for aimbot" to your script if u got script from here
+
+
+-- Made by Fhetsz,hotkey is right mouse click (m2) www.youtube.com/@Fhetsz
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+
+
+-- Utility functions
+
+-- Function to calculate distance between two positions
+local function getDistance(pos1, pos2)
+    return (pos1 - pos2).Magnitude
+end
+
+local function isVisible(player)
+    local character = player.Character
+    if character and character:FindFirstChild("Head") then
+        local origin = Camera.CFrame.Position
+        local direction = (character.Head.Position - origin).unit
+        local ray = Ray.new(origin, direction * AimbotRange)
+        local hitPart, hitPosition = workspace:FindPartOnRay(ray, LocalPlayer.Character)
+        return hitPart and hitPart:IsDescendantOf(character)
+    end
+    return false
+end
+
+local function aimAtClosestTarget()
+    local closestPlayer = nil
+    local closestDistance = AimbotRange
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            if character and character:FindFirstChild("Head") then
+                if TeamCheck and player.Team == LocalPlayer.Team then
+                    continue
+                end
+
+                if WallCheck and not isVisible(player) then
+                    continue
+                end
+
+                local distance = getDistance(Camera.CFrame.Position, character.Head.Position)
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+
+    if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, closestPlayer.Character.Head.Position)
+    end
+end
+
+local function addESP(player)
+    if not player.Character then return end
+    if player.Character:FindFirstChild("ESPHighlight") then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESPHighlight"
+    highlight.Parent = player.Character
+    highlight.Adornee = player.Character
+    highlight.FillColor = Color3.new(1, 0, 0)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+end
+
+local function removeESP(player)
+    if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+        player.Character.ESPHighlight:Destroy()
+    end
+end
+
+spawn(function()
+    while ESPEnabled do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                -- Only add ESP if team check passes or if team check is disabled
+                if not TeamCheck or player.Team ~= LocalPlayer.Team then
+                    addESP(player)
+                else
+                    removeESP(player)
+                end
+            end
+        end
+        wait(1)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then  -- Right-click
+        while AimbotEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) do
+            aimAtClosestTarget()
+            wait(0)  -- Adjust aiming speed here (lower is faster)
+        end
+    end
+end)
