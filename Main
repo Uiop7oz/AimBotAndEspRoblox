@@ -1,10 +1,4 @@
--- add "local AimbotEnabled = true     --Costumize if u want
-local ESPEnabled = true
-local TeamCheck = true
-local WallCheck = true
-local AimbotRange = 2000  -- Maximum range for aimbot" to your script if u got script from here
-
-
+-- without loadstring this wont work
 -- Made by Fhetsz,hotkey is right mouse click (m2) www.youtube.com/@Fhetsz
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
